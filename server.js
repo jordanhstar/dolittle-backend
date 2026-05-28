@@ -2,9 +2,7 @@ const express = require('express');
 const cors = require('cors');
 
 const app = express();
-app.use(cors({
-  origin: '*'
-}));
+app.use(cors({ origin: '*' }));
 app.use(express.json({ limit: '50mb' }));
 
 app.post('/analyze', async (req, res) => {
@@ -23,10 +21,16 @@ app.post('/analyze', async (req, res) => {
         messages,
       }),
     });
-    const data = await response.json();
-    res.json(data);
+    const text = await response.text();
+    console.log('Anthropic response:', text);
+    try {
+      const data = JSON.parse(text);
+      res.json(data);
+    } catch {
+      res.status(500).json({ error: 'Invalid response from Anthropic', raw: text });
+    }
   } catch (err) {
-    console.error(err);
+    console.error('Server error:', err);
     res.status(500).json({ error: err.message });
   }
 });
